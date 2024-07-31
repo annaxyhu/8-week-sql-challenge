@@ -1,4 +1,6 @@
 /* Danny's Diner Case Study
+Author: Anna Hu
+Date: July 30, 2024
 
 All information regarding this case study is sourced from DataWithDanny's 8 Week SQL Challenge.
 
