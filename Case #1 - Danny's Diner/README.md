@@ -17,6 +17,9 @@ This case is divided into the following sections:
 **Problem Statement:** Danny wants to use the data to answer a few simple questions about his customers, especially about their visiting patterns, how much money they’ve spent and also which menu items are their favourite. These insights will be used to help him decide whether he should expand the existing customer loyalty program.
 
 **Entity-Relationship Diagram:** Danny has shared 3 key datasets (sales, menu and members) as shown below.
+<p align="center">
+  <img src="https://github.com/annaxyhu/8-week-sql-challenge/blob/main/Case%20%231%20-%20Danny's%20Diner/Case1-ER-diagram.png"/>
+</p>
 
 ## Danny's Questions and Solutions
 
