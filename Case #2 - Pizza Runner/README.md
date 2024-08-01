@@ -7,9 +7,13 @@ This case study is sourced from DataWithDanny's 8 Week SQL Challenge. For more i
 
 This case is divided into the following sections:
 1. [Case Background](#case-background)
-2. [Data Cleaning](#data-cleaning)
-3. [Questions and Solutions](#dannys-questions-and-solutions)
-4. [Insights and Recommendations](#insights-and-recommendations)
+2. [Dataset Structure](#dataset-structure)
+3. [Data Cleaning](#data-cleaning)
+4. [Part A: Pizza Metrics](#part-a-pizza-metrics)
+5. [Part B: Runner and Customer Experience](#part-b-runner-and-customer-experience)
+6. [Part C: Ingredient Optimization](#part-c-ingredient-optimization)
+7. [Part D: Pricing and Ratings](#part-d-pricing-and-ratings)
+8. [Insights and Recommendations](#insights-and-recommendations)
 
 ## Case Background
 
@@ -22,10 +26,212 @@ This case is divided into the following sections:
   <img src="https://github.com/annaxyhu/8-week-sql-challenge/blob/main/Case%20%232%20-%20Pizza%20Runner/Case2-ER-diagram.png"/>
 </p>
 
+## Dataset Structure
+
+**Table 1: runners**
+```sql
+CREATE TABLE runners (
+	runner_id INTEGER,
+	registration_date DATE
+);
+
+INSERT INTO runners (runner_id, registration_date)
+VALUES
+	(1, '2021-01-01'),
+	(2, '2021-01-03'),
+	(3, '2021-01-08'),
+	(4, '2021-01-15');
+```
+***
+
+**Table 2: customer_orders**
+```sql
+CREATE TABLE customer_orders (
+	order_id INTEGER,
+	customer_id INTEGER,
+	pizza_id INTEGER,
+	exclusions VARCHAR(4),
+	extras VARCHAR(4),
+	order_time TIMESTAMP
+);
+
+INSERT INTO customer_orders
+	(order_id, customer_id, pizza_id, exclusions, extras, order_time)
+VALUES
+	('1', '101', '1', '', '', '2020-01-01 18:05:02'),
+	('2', '101', '1', '', '', '2020-01-01 19:00:52'),
+	('3', '102', '1', '', '', '2020-01-02 23:51:23'),
+	('3', '102', '2', '', NULL, '2020-01-02 23:51:23'),
+	('4', '103', '1', '4', '', '2020-01-04 13:23:46'),
+	('4', '103', '1', '4', '', '2020-01-04 13:23:46'),
+	('4', '103', '2', '4', '', '2020-01-04 13:23:46'),
+	('5', '104', '1', 'null', '1', '2020-01-08 21:00:29'),
+	('6', '101', '2', 'null', 'null', '2020-01-08 21:03:13'),
+	('7', '105', '2', 'null', '1', '2020-01-08 21:20:29'),
+	('8', '102', '1', 'null', 'null', '2020-01-09 23:54:33'),
+	('9', '103', '1', '4', '1, 5', '2020-01-10 11:22:59'),
+	('10', '104', '1', 'null', 'null', '2020-01-11 18:34:49'),
+	('10', '104', '1', '2, 6', '1, 4', '2020-01-11 18:34:49');
+```
+***
+
+**Table 3: runner_orders**
+```sql
+CREATE TABLE runner_orders(
+	order_id INT,
+	runner_id INT,
+	pickup_time VARCHAR(19),
+	distance VARCHAR(7),
+	duration VARCHAR(10),
+	cancellation VARCHAR(23)
+);
+
+INSERT INTO runner_orders
+	(order_id, runner_id, pickup_time, distance, duration, cancellation)
+VALUES
+	('1', '1', '2020-01-01 18:15:34', '20km', '32 minutes', ''),
+	('2', '1', '2020-01-01 19:10:54', '20km', '27 minutes', ''),
+	('3', '1', '2020-01-03 00:12:37', '13.4km', '20 mins', NULL),
+	('4', '2', '2020-01-04 13:53:03', '23.4', '40', NULL),
+	('5', '3', '2020-01-08 21:10:57', '10', '15', NULL),
+	('6', '3', 'null', 'null', 'null', 'Restaurant Cancellation'),
+	('7', '2', '2020-01-08 21:30:45', '25km', '25mins', 'null'),
+	('8', '2', '2020-01-10 00:15:02', '23.4 km', '15 minute', 'null'),
+	('9', '2', 'null', 'null', 'null', 'Customer Cancellation'),
+	('10', '1', '2020-01-11 18:50:20', '10km', '10minutes', 'null');
+
+```
+***
+
+**Table 4: pizza_names**
+```sql
+CREATE TABLE pizza_names(
+	pizza_id INT, 
+	pizza_name TEXT
+);
+
+INSERT INTO pizza_names
+	(pizza_id, pizza_name)
+VALUES
+	(1, 'Meatlovers'),
+	(2, 'Vegetarian');
+```
+***
+
+**Table 5: pizza_recipes**
+```sql
+CREATE TABLE pizza_recipes(
+	pizza_id INT, 
+	toppings TEXT
+);
+
+INSERT INTO pizza_recipes
+	(pizza_id, toppings)
+VALUES
+	(1, '1, 2, 3, 4, 5, 6, 8, 10'),
+	(2, '4, 6, 7, 9, 11, 12');
+```
+***
+**Table 6: pizza_toppings**
+```sql
+CREATE TABLE pizza_toppings(
+	topping_id INT,
+    topping_name TEXT
+);
+
+INSERT INTO pizza_toppings
+	(topping_id, topping_name)
+VALUES
+	(1, 'Bacon'),
+	(2, 'BBQ Sauce'),
+	(3, 'Beef'),
+	(4, 'Cheese'),
+	(5, 'Chicken'),
+	(6, 'Mushrooms'),
+	(7, 'Onions'),
+	(8, 'Pepperoni'),
+	(9, 'Peppers'),
+	(10, 'Salami'),
+	(11, 'Tomatoes'),
+	(12, 'Tomato Sauce');
+```
+
 ## Data Cleaning
 
+**Table: customer_orders**
 
+Changes:
+- Created a new staging table customer_orders_staging
+- Set all 'nulls' or blanks to NULL
 
+```sql
+CREATE TABLE `customer_orders_staging` (
+  `order_id` int DEFAULT NULL,
+  `customer_id` int DEFAULT NULL,
+  `pizza_id` int DEFAULT NULL,
+  `exclusions` varchar(4) DEFAULT NULL,
+  `extras` varchar(4) DEFAULT NULL,
+  `order_time` timestamp NULL DEFAULT NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+
+INSERT INTO customer_orders_staging
+(SELECT * FROM customer_orders);
+
+UPDATE customer_orders_staging
+SET exclusions = ''
+WHERE exclusions = 'null';
+
+UPDATE customer_orders_staging
+SET extras = ''
+WHERE extras = 'null' OR extras IS NULL;
+
+```
+***
+**Table: runner_orders**
+
+Changes:
+- Created a new staging table runner_orders_staging
+- Set all blanks to NULL
+- Remove 'km' from distance
+- Remove anything after the numbers from duration
+- Changed Datatypes:
+  - pickup_time to `DATETIME`
+  - distance to `FLOAT`
+  - duration to `INT`
+
+```sql
+CREATE TABLE `runner_orders_staging` (
+  `order_id` int DEFAULT NULL,
+  `runner_id` int DEFAULT NULL,
+  `pickup_time` varchar(19) DEFAULT NULL,
+  `distance` varchar(7) DEFAULT NULL,
+  `duration` varchar(10) DEFAULT NULL,
+  `cancellation` varchar(23) DEFAULT NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+
+INSERT INTO runner_orders_staging
+(SELECT * FROM runner_orders);
+
+UPDATE runner_orders_staging
+SET duration = NULL
+WHERE duration = '';
+
+UPDATE runner_orders_staging
+SET cancellation = ''
+WHERE cancellation = 'null' OR cancellation IS NULL;
+
+UPDATE runner_orders_staging
+SET distance = REPLACE(distance, 'km', ' ');
+
+UPDATE runner_orders_staging
+SET duration = LEFT(duration, 2);
+
+ALTER TABLE runner_orders_staging
+MODIFY pickup_time DATETIME,
+MODIFY distance FLOAT,
+MODIFY duration INT;
+```
+***
 ## Part A: Pizza Metrics
 
 **1. How many pizzas were ordered?**
@@ -358,7 +564,7 @@ Answer:
 ```
 ***
 
-## Part C: Ingredient Optimisation
+## Part C: Ingredient Optimization
 
 ## Part D: Pricing and Ratings
 
