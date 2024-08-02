@@ -22,19 +22,6 @@ CREATE TABLE sales(
 	product_id INT
 );
 
-CREATE TABLE menu(
-	product_id INT,
-	product_name VARCHAR(5),
-	price INT
-);
-
-CREATE TABLE members(
-	customer_id VARCHAR(1),
-	join_date TIMESTAMP 
-);
-
-SHOW TABLES;
-
 INSERT INTO sales(customer_id, order_date, product_id)
 VALUES
 	('A', '2021-01-01', 1),
@@ -53,8 +40,11 @@ VALUES
 	('C', '2021-01-01', 3),
 	('C', '2021-01-07', 3);
 
-SELECT *
-FROM sales;
+CREATE TABLE menu(
+	product_id INT,
+	product_name VARCHAR(5),
+	price INT
+);
 
 INSERT INTO menu(product_id, product_name, price)
 VALUES
@@ -62,23 +52,21 @@ VALUES
 	(2, 'curry', 15),
 	(3, 'ramen', 12);
 
-SELECT *
-FROM menu;
+CREATE TABLE members(
+	customer_id VARCHAR(1),
+	join_date TIMESTAMP 
+);
 
 INSERT INTO members(customer_id, join_date)
 VALUES
 	('A', '2021-01-07 00:00:00'),
 	('B', '2021-01-09 00:00:00');
 
-SELECT *
-FROM members;
-
 /* 
 Case Study Questions
 */
 
 -- 1. What is the total amount each customer spent at the restaurant?
-
 SELECT 
 	customer_id, 
 	SUM(price) as total_amt_spent
@@ -88,13 +76,11 @@ JOIN menu m
 GROUP BY customer_id;
 
 -- 2. How many days has each customer visited the restaurant?
-
 SELECT customer_id, COUNT(DISTINCT order_date) AS visits_days
 FROM sales
 GROUP BY customer_id;
 
 -- 3. What was the first item from the menu purchased by each customer?
-
 WITH purchase_order AS (
 SELECT 
 	customer_id,
@@ -114,7 +100,6 @@ WHERE order_rank = 1
 ;
 
 -- 4. What is the most purchased item on the menu and how many times was it purchased by all customers?
-
 SELECT m.product_name, COUNT(*) AS most_purchased
 FROM menu m
 JOIN sales s
@@ -125,7 +110,6 @@ LIMIT 1
 ;
 
 -- 5. Which item was the most popular for each customer?
-
 WITH total_sales AS (
 SELECT 
 	s.customer_id as customer, 
@@ -143,7 +127,6 @@ WHERE ranking = 1
 ;
 
 -- 6. Which item was purchased first by the customer after they became a member?
-
 SELECT customer_id, product_name
 FROM (SELECT
 		s.customer_id,
@@ -159,7 +142,6 @@ FROM (SELECT
 WHERE ranking = 1;
 
 -- 7. Which item was purchased just before the customer became a member?
-
 SELECT customer_id, product_name
 FROM (SELECT
 		s.customer_id,
@@ -175,7 +157,6 @@ FROM (SELECT
 WHERE ranking = 1;
 
 -- 8. What is the total items and amount spent for each member before they became a member?
-
 WITH orders_before_join AS (
 SELECT
 	s.customer_id,
@@ -195,7 +176,6 @@ GROUP BY customer_id;
 
 -- 9. If each $1 spent equates to 10 points and sushi has a 2x points multiplier - how many points would each customer have?
 -- (Solution assumes purchases on join date are not included in the points calculation)
-
 WITH purchases AS (
 SELECT
 	s.customer_id,
@@ -218,7 +198,6 @@ GROUP BY customer_id;
    
 -- 10. In the first week after a customer joins the program (including their join date) they earn 2x points on all items, not just sushi - how many points do customer A and B have at the end of January?
 -- (Solution assumes that the 2x active period ends 7 afters after the join date (ex. active from 2021-01-09 to 2021-01-16 inclusive))
-
 WITH purchases AS (
 SELECT
 	s.customer_id,
