@@ -178,12 +178,12 @@ INSERT INTO customer_orders_staging
 (SELECT * FROM customer_orders);
 
 UPDATE customer_orders_staging
-SET exclusions = ''
-WHERE exclusions = 'null';
+SET exclusions = NULL
+WHERE exclusions = 'null' OR exclusions = '';
 
 UPDATE customer_orders_staging
-SET extras = ''
-WHERE extras = 'null' OR extras IS NULL;
+SET extras = NULL
+WHERE extras = 'null' OR extras = '';
 
 ```
 ***
@@ -565,7 +565,103 @@ Answer:
 ***
 
 ## Part C: Ingredient Optimization
+**1. What are the standard ingredients for each pizza?**
 
+```sql
+WITH toppings_cte AS (
+SELECT 
+	pizza_recipes.pizza_id,
+	TRIM(SUBSTRING_INDEX(SUBSTRING_INDEX(pizza_recipes.toppings, ',', numbers.n), ',', -1)) AS toppings
+FROM (SELECT 1 n 
+	UNION ALL SELECT 2
+	UNION ALL SELECT 3 
+	UNION ALL SELECT 4
+	UNION ALL SELECT 5
+	UNION ALL SELECT 6
+) AS numbers
+JOIN pizza_recipes
+	ON CHAR_LENGTH(pizza_recipes.toppings)
+	-CHAR_LENGTH(REPLACE(pizza_recipes.toppings, ',', ''))>=numbers.n-1
+ORDER BY pizza_id, n
+)
+SELECT p.topping_name, count(t.pizza_id) AS pizzas
+FROM toppings_cte t
+JOIN pizza_toppings p
+	ON t.toppings = p.topping_id
+GROUP BY p.topping_name
+HAVING pizzas = 2
+;
+```
+Answer: 
+```sql
+| topping_name | pizzas |
+| ------------ | ------ |
+| Cheese       | 2      |
+| Mushrooms    | 2      |
+```
+***
+**2. What was the most commonly added extra?**
+
+```sql
+WITH extra_CTE AS (
+SELECT 
+	order_id,
+	TRIM(SUBSTRING_INDEX(SUBSTRING_INDEX(extras, ',', numbers.n), ',', -1)) AS extra
+FROM (SELECT 1 n 
+	UNION ALL SELECT 2
+) AS numbers
+JOIN customer_orders_staging
+	ON CHAR_LENGTH(extras)
+	-CHAR_LENGTH(REPLACE(extras, ',', ''))>=numbers.n-1
+ORDER BY order_id, n
+)
+SELECT topping_name, COUNT(*) order_times
+FROM extra_CTE e
+JOIN pizza_toppings p
+	ON e.extra = p.topping_id
+GROUP BY topping_name
+ORDER BY order_times DESC
+LIMIT 1;
+```
+Answer: 
+```sql
+| topping_name | order_times |
+| ------------ | ----------- |
+| Bacon        | 4           |
+
+```
+***
+**3. What was the most common exclusion?**
+
+```sql
+WITH exclusion_CTE AS (
+SELECT 
+	order_id,
+	TRIM(SUBSTRING_INDEX(SUBSTRING_INDEX(exclusions, ',', numbers.n), ',', -1)) AS exclusion
+FROM (SELECT 1 n 
+	UNION ALL SELECT 2
+) AS numbers
+JOIN customer_orders_staging
+	ON CHAR_LENGTH(exclusions)
+        -CHAR_LENGTH(REPLACE(exclusions, ',', ''))>=numbers.n-1
+ORDER BY order_id, n
+)
+SELECT topping_name, COUNT(*) exclusion_times
+FROM exclusion_CTE e
+JOIN pizza_toppings p
+	ON e.exclusion = p.topping_id
+GROUP BY topping_name
+ORDER BY exclusion_times DESC
+LIMIT 1;
+```
+Answer: 
+```sql
+| topping_name | exclusion_times |
+| ------------ | --------------- |
+| Cheese       | 4               |
+
+```
+***
 ## Part D: Pricing and Ratings
 **1. If a Meat Lovers pizza costs $12 and Vegetarian costs $10 and there were no charges for changes - how much money has Pizza Runner made so far if there are no delivery fees?**
 
