@@ -306,6 +306,99 @@ each customer in the subscriptions table with the following requirements:
 - Upgrades from pro monthly to pro annual are paid at the end of the current billing period and also starts at the end of the month period
 - Once a customer churns they will no longer make payments
 
+```sql
+DROP TABLE IF EXISTS payments_2020;
+
+CREATE TABLE payments_2020
+WITH RECURSIVE
+base_cte AS (
+SELECT customer_id, plan_id, plan_name, start_date, price,
+	LEAD(start_date, 1) OVER (PARTITION BY customer_id ORDER BY start_date) AS next_date
+FROM subscriptions
+JOIN plans USING (plan_id)
+),
+
+end_date_cte AS (
+SELECT *,
+	CASE 
+		WHEN next_date IS NULL OR next_date <= 2020-12-31 THEN '2020-12-31'
+        ELSE next_date
+	END end_date
+FROM base_cte
+WHERE plan_name NOT IN ('trial', 'churn')
+),
+
+next_date_cte AS (
+SELECT
+	customer_id,
+    plan_id,
+    plan_name,
+    start_date,
+    end_date,
+    DATE_ADD(end_date, INTERVAL 1 MONTH) AS next_date1,
+    price AS amount
+FROM end_date_cte
+),
+
+payment_date_cte AS (
+SELECT 
+	customer_id,
+    plan_id,
+    plan_name,
+    start_date,
+    end_date,
+    next_date1,
+    amount,
+    start_date AS payment_date
+FROM next_date_cte 
+
+UNION ALL
+
+SELECT 
+	customer_id,
+    plan_id,
+    plan_name,
+    start_date,
+    end_date,
+    next_date1,
+	amount,
+    DATE_ADD(payment_date, INTERVAL 1 MONTH) as payment_date
+FROM payment_date_cte
+WHERE payment_date < next_date1 AND plan_id !=3
+)
+SELECT
+	customer_id,
+    plan_id,
+    plan_name,
+    payment_date,
+    amount,
+    RANK() OVER(PARTITION BY customer_id ORDER BY payment_date) AS payment_order
+FROM payment_date_cte
+WHERE YEAR(payment_date) = '2020'
+ORDER BY customer_id, payment_date;
+
+SELECT * FROM payments_2020;
+```
+Output:
+
+customer_id | plan_id | plan_name | payment_date | amount | payment_order
+--| -- | -- | -- | -- | --
+1 | 1 | basic monthly | 2020-08-08 | 9.9 | 1
+1 | 1 | basic monthly | 2020-09-08 | 9.9 | 2
+1 | 1 | basic monthly | 2020-10-08 | 9.9 | 3
+1 | 1 | basic monthly | 2020-11-08 | 9.9 | 4
+1 | 1 | basic monthly | 2020-12-08 | 9.9 | 5
+2 | 3 | pro annual | 2020-09-27 | 199.0 | 1
+… | … | … | … |… |…
+91|2|pro monthly|2020-09-15|19.9|1
+91|2|pro monthly|2020-10-15|19.9|2
+91|2|pro monthly|2020-11-15|19.9|3
+91|2|pro monthly|2020-12-15|19.9|4
+92|1|basic monthly|2020-11-09|9.9|1
+92|1|basic monthly|2020-12-09|9.9|2
+… | … | … | … |… |…
+
+
 ## Part D: Outside The Box Questions
 1. How would you calculate the rate of growth for Foodie-Fi?
 2. What key metrics would you recommend Foodie-Fi management to track over time to assess performance of their overall business?
