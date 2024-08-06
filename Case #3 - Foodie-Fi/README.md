@@ -68,6 +68,11 @@ VALUES
 
 Based off the 8 sample customers provided in the sample from the subscriptions table, write a brief description about each customer’s onboarding journey.
 
+![image](https://github.com/user-attachments/assets/448479be-ad62-4ed7-8845-c0c71c48a8a7)
+
+Given the 8 sample customers, the typical customer journey looks like this:
+- Every customer begins with a trial plan that lasts for a week
+- After trial period, customers tend to switch to a lower priced plan for a bit, then either churns, keeps their plan, or upgrades to a more premium plan
 
 ## Part B: Data Analysis Questions
 **1. How many customers has Foodie-Fi ever had?**
