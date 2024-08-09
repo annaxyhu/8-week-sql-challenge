@@ -17,7 +17,7 @@ This case is divided into the following sections:
 
 **Problem Statement:** Danny created Foodie-Fi with a data driven mindset and wanted to ensure all future investment decisions and new features were decided using data. This case study focuses on using subscription style digital data to answer important business questions.
 
-**Entity-Relationship Diagram:** Danny has shared his pizza_runner database schema, with the following ER diagram: 
+**Entity-Relationship Diagram:** Danny has shared the foodie-fi database schema, with the following ER diagram: 
 <p align="center">
   <img src="https://github.com/annaxyhu/8-week-sql-challenge/blob/main/Case%20%233%20-%20Foodie-Fi/Case3-ER-diagram.png"/>
 </p>
