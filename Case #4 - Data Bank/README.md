@@ -1,7 +1,7 @@
 # Case Study #4: Data Bank
 ## Introduction
 
-This case study is sourced from DataWithDanny's 8 Week SQL Challenge. For more information on this case, refer to the following link: [Foodie-Fi](https://8weeksqlchallenge.com/case-study-3/). 
+This case study is sourced from DataWithDanny's 8 Week SQL Challenge. For more information on this case, refer to the following link: [Data Bank](https://8weeksqlchallenge.com/case-study-4/). 
 
 This case is divided into the following sections:
 1. [Case Background](#case-background)
