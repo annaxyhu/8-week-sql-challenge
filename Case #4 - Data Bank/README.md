@@ -23,3 +23,34 @@ This case is divided into the following sections:
 </p>
 
 ## Dataset Structure
+
+## Part A
+-- 1. How many unique nodes are there on the Data Bank system?
+SELECT COUNT(DISTINCT node_id) unique_nodes
+FROM customer_nodes;
+
+-- 2. What is the number of nodes per region?
+SELECT region_name, COUNT(DISTINCT node_id) num_nodes
+FROM customer_nodes
+JOIN regions USING (region_id)
+GROUP BY region_name;
+
+-- 3. How many customers are allocated to each region?
+SELECT region_id, region_name, COUNT(DISTINCT customer_id) num_customers
+FROM customer_nodes
+JOIN regions USING (region_id)
+GROUP BY region_id, region_name
+ORDER BY region_id;
+
+-- 4. How many days on average are customers reallocated to a different node?
+SELECT DISTINCT start_date
+FROM customer_nodes;
+
+SELECT DISTINCT end_date
+FROM customer_nodes;
+
+SELECT ROUND(AVG(DATEDIFF(end_date, start_date)),2) avg_days
+FROM customer_nodes
+WHERE end_date != '9999-12-31';
+
+-- 5. What is the median, 80th and 95th percentile for this same reallocation days metric for each region?
